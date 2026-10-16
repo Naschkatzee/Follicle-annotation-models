@@ -23,12 +23,6 @@ class PointHead(nn.Module):
 
     def forward(self, x, p2_1, p2_2, out):
 
-        if x.shape[0] == 2:
-            x = x[:1, ...]
-            p2_1 = p2_1[:1, ...]
-            p2_2 = p2_2[:1, ...]
-            out = out[:1, ...]
-
         if not self.training:
             return self.inference(x, p2_1, p2_2, out)
 
