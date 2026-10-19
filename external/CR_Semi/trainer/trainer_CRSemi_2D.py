@@ -1,6 +1,6 @@
 """
 start from cd external\CR_Semi
-python trainer\trainer_CRSemi_2D.py
+python -m trainer.trainer_CRSemi_2D
 """
 
 from pathlib import Path
@@ -68,8 +68,14 @@ def train():
         r"D:\Uni_Bamberg\8_Semester\Bachelor thesis\Annotating Borna dataset\follicle-annotation-models\nnunet_data\Dataset001_Follicles\labelsTr"
     )
 
+    """
     output_dir = Path(
         r"D:\Uni_Bamberg\8_Semester\Bachelor thesis\Annotating Borna dataset\follicle-annotation-models\external\CR_Semi\results_2d"
+    )
+    """
+
+    output_dir = Path(
+    "/content/drive/MyDrive/biomedparse_project/crsemi_2d_300epochs"
     )
 
     output_dir.mkdir(
@@ -117,7 +123,7 @@ def train():
         lr=1e-4
     )
 
-    n_epochs = 5
+    n_epochs = 300
 
     best_dice = -1.0
 
@@ -310,6 +316,7 @@ def train():
                     "train_dice": mean_train_dice,
                     "val_loss": mean_val_loss,
                     "val_dice": mean_val_dice,
+                    "best_dice": best_dice,
                 },
                 best_path
             )
@@ -319,7 +326,26 @@ def train():
                 f"Dice={best_dice:.4f}"
             )
 
-        print()
+        if (epoch + 1) % 25 == 0:
+            periodic_path = output_dir / f"checkpoint_epoch_{epoch + 1}.pth"
+
+            torch.save(
+                {
+                    "epoch": epoch + 1,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "train_loss": mean_train_loss,
+                    "train_dice": mean_train_dice,
+                    "val_loss": mean_val_loss,
+                    "val_dice": mean_val_dice,
+                    "best_dice": best_dice,
+                },
+                periodic_path
+                )
+
+            print(f"Periodic checkpoint saved: epoch {epoch + 1}")
+        
+        print ()
 
     print("Training finished.")
     print("Best validation Dice:", best_dice)
