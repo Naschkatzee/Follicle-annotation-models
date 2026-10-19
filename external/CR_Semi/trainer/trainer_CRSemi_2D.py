@@ -127,7 +127,54 @@ def train():
 
     best_dice = -1.0
 
-    for epoch in range(n_epochs):
+    start_epoch = 0
+
+    latest_path = output_dir / "checkpoint_latest.pth"
+    best_path = output_dir / "checkpoint_best.pth"
+
+    if latest_path.exists():
+        checkpoint = torch.load(
+            latest_path,
+            map_location=device,
+            weights_only=False
+        )
+
+        model.load_state_dict(
+            checkpoint["model_state_dict"]
+        )
+
+        optimizer.load_state_dict(
+            checkpoint["optimizer_state_dict"]
+        )
+
+        start_epoch = checkpoint["epoch"]
+
+        best_dice = checkpoint.get("best_dice")
+
+        if best_dice is None and best_path.exists():
+            best_checkpoint = torch.load(
+                best_path,
+                map_location=device,
+                weights_only=False
+            )
+
+            best_dice = best_checkpoint.get(
+                "val_dice",
+                -1.0
+            )
+
+        if best_dice is None:
+            best_dice = checkpoint.get(
+                "val_dice",
+                -1.0
+            )
+
+        print(
+            f"Resuming from epoch {start_epoch}, "
+            f"best Dice={best_dice:.4f}"
+        )
+
+    for epoch in range(start_epoch, n_epochs):
 
         # -------------------------
         # TRAIN
@@ -288,19 +335,6 @@ def train():
 
         latest_path = output_dir / "checkpoint_latest.pth"
 
-        torch.save(
-            {
-                "epoch": epoch + 1,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "train_loss": mean_train_loss,
-                "train_dice": mean_train_dice,
-                "val_loss": mean_val_loss,
-                "val_dice": mean_val_dice,
-            },
-            latest_path
-        )
-
         if mean_val_dice > best_dice:
 
             best_dice = mean_val_dice
@@ -326,6 +360,20 @@ def train():
                 f"Dice={best_dice:.4f}"
             )
 
+            torch.save(
+                {
+                    "epoch": epoch + 1,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "train_loss": mean_train_loss,
+                    "train_dice": mean_train_dice,
+                    "val_loss": mean_val_loss,
+                    "val_dice": mean_val_dice,
+                    "best_dice": best_dice,
+                },
+                latest_path
+            )
+        
         if (epoch + 1) % 25 == 0:
             periodic_path = output_dir / f"checkpoint_epoch_{epoch + 1}.pth"
 
