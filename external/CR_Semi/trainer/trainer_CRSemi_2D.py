@@ -67,12 +67,7 @@ def train():
     labels_dir = Path(
         r"D:\Uni_Bamberg\8_Semester\Bachelor thesis\Annotating Borna dataset\follicle-annotation-models\nnunet_data\Dataset001_Follicles\labelsTr"
     )
-
-    """
-    output_dir = Path(
-        r"D:\Uni_Bamberg\8_Semester\Bachelor thesis\Annotating Borna dataset\follicle-annotation-models\external\CR_Semi\results_2d"
-    )
-    """
+    
 
     output_dir = Path(
     "/content/drive/MyDrive/biomedparse_project/crsemi_2d_300epochs"
